@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>AIUX Element Inventory | SmokerController</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #142d28;
+        --muted: #52645e;
+        --line: #d9e2dc;
+        --paper: #f4f7f3;
+        --surface: #ffffff;
+        --forest: #174b3d;
+        --lime: #c9ed72;
+        --blue: #dceef3;
+        --orange: #f8e5ce;
+        --red: #f4dddd;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      header {
+        background: var(--forest);
+        color: #fff;
+        border-bottom: 5px solid var(--lime);
+      }
+
+      .header-inner, main, footer {
+        width: min(1500px, calc(100% - 40px));
+        margin-inline: auto;
+      }
+
+      .header-inner { padding: 34px 0 30px; }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--lime);
+        font-size: 12px;
+        font-weight: 750;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(30px, 4vw, 46px);
+        font-weight: 500;
+        line-height: 1.1;
+      }
+
+      .lede {
+        max-width: 760px;
+        margin: 12px 0 0;
+        color: #e4eee8;
+      }
+
+      main { padding: 26px 0 38px; }
+
+      .summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .summary span {
+        padding: 7px 11px;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: var(--surface);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 12px;
+      }
+
+      label { font-weight: 700; }
+
+      input {
+        width: min(100%, 440px);
+        min-height: 42px;
+        padding: 9px 12px;
+        border: 1px solid #879a90;
+        border-radius: 5px;
+        background: var(--surface);
+        color: var(--ink);
+        font: inherit;
+      }
+
+      input:focus-visible, .table-scroll:focus-visible {
+        outline: 3px solid #1c83a0;
+        outline-offset: 2px;
+      }
+
+      #result-count {
+        color: var(--muted);
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .table-scroll {
+        overflow: auto;
+        max-height: calc(100vh - 250px);
+        min-height: 340px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: var(--surface);
+      }
+
+      table {
+        width: 100%;
+        min-width: 980px;
+        border-collapse: separate;
+        border-spacing: 0;
+        text-align: left;
+      }
+
+      th, td {
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+
+      th {
+        position: sticky;
+        z-index: 1;
+        top: 0;
+        background: #e8f0e9;
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      tbody tr:last-child td { border-bottom: 0; }
+      tbody tr:hover { background: #f5f9f1; }
+
+      th:first-child, td:first-child { width: 220px; }
+      th:nth-child(2), td:nth-child(2) { width: 350px; }
+      th:nth-child(3), td:nth-child(3) { width: 125px; }
+      th:nth-child(4), td:nth-child(4) { min-width: 380px; }
+
+      code {
+        color: #174b3d;
+        font-family: Menlo, Monaco, monospace;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+      }
+
+      .status {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .status-used { background: var(--lime); color: #20320d; }
+      .status-indirect { background: var(--blue); color: #17475a; }
+      .status-unused { background: #e9ece9; color: #44534d; }
+      .status-additional { background: var(--orange); color: #663d13; }
+      .muted { color: var(--muted); }
+
+      #empty-row[hidden] { display: none; }
+      #empty-row td { padding: 22px; text-align: center; color: var(--muted); }
+
+      footer {
+        padding: 0 0 24px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      @media (max-width: 600px) {
+        .header-inner, main, footer { width: min(100% - 24px, 1500px); }
+        .header-inner { padding: 26px 0 24px; }
+        .toolbar { align-items: stretch; flex-direction: column; }
+        input { width: 100%; }
+        .table-scroll { max-height: 70vh; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { scroll-behavior: auto !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <p class="eyebrow">SmokerController / Component reference</p>
+        <h1>AIUX Element Inventory</h1>
+        <p class="lede">Available AIUX catalog elements, concise descriptions, current usage, and the related SmokerController feature.</p>
+      </div>
+    </header>
+
+    <main>
+      <div class="summary" aria-label="Inventory summary">
+        <span>51 catalog elements</span>
+        <span>7 used directly</span>
+        <span>2 used indirectly</span>
+        <span>3 additional app elements</span>
+      </div>
+
+      <div class="toolbar">
+        <label for="filter">Filter elements or app features</label>
+        <input id="filter" type="search" autocomplete="off" placeholder="Search names, descriptions, or usage">
+        <output id="result-count" aria-live="polite">54 elements</output>
+      </div>
+
+      <div class="table-scroll" role="region" aria-label="AIUX element inventory table" tabindex="0">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">AIUX element</th>
+              <th scope="col">AIUX element description</th>
+              <th scope="col">Used</th>
+              <th scope="col">Features / related app usage</th>
+            </tr>
+          </thead>
+          <tbody id="inventory">
+            <tr><td><code>aiux-announcement-banner</code></td><td>Fetches and displays active announcement banners with dismissal and live updates.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-code-editor</code></td><td>Monaco editor with syntax highlighting, fullscreen, linting, and autocomplete.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-calendar-component</code></td><td>Calendar-based date picker for the Karuna AIUX platform.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-time-selector</code></td><td>Editable time input with a dropdown picker.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-condition-builder</code></td><td>Visual builder for constructing complex database queries.</td><td><span class="status status-indirect">Indirect</span></td><td>Query-building/filter capability is offered through connected-list controls; no standalone element is rendered.</td></tr>
+            <tr><td><code>aiux-date-range-picker</code></td><td>Selects a date range using presets or a calendar popup.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-document-viewer</code></td><td>Displays ServiceNow attachments, including PDFs, images, text, JSON, and Office files.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-empty-state-content</code></td><td>Empty-state message with optional body, action, and icon or illustration.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-gallery-list</code></td><td>Presentational card-grid list with pagination, filtering, and sorting.</td><td><span class="status status-unused">No</span></td><td>List pages use the connected table layout; no gallery layout is configured.</td></tr>
+            <tr><td><code>aiux-help-assistant</code></td><td>Voice-driven Now Assist guidance with screen sharing.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-help-panel</code></td><td>Contextual help panel with documents, guided tours, and What's New.</td><td><span class="status status-indirect">Indirect</span></td><td>Enabled by the app shell's <code>helpPanel</code> feature in <code>application.js</code>.</td></tr>
+            <tr><td><code>aiux-list-connected</code></td><td>ServiceNow-backed table, gallery, and kanban lists with data, filtering, sorting, and pagination.</td><td><span class="status status-used">Yes</span></td><td>Device, session, reading, action, alert, and cooking-knowledge lists; control-room history and activity.</td></tr>
+            <tr><td><code>aiux-loader</code></td><td>SSR-safe loading indicator with CSS or optional Lottie animation.</td><td><span class="status status-used">Yes</span></td><td>Loading feedback while generating a cooking plan and clearing smoker history.</td></tr>
+            <tr><td><code>aiux-nacm</code></td><td>Now Assist Content Management for AI skill invocation and response interactions.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used directly.</td></tr>
+            <tr><td><code>aiux-pagination-nav</code></td><td>Accessible page navigation with page numbers, ellipses, and optional controls.</td><td><span class="status status-unused">No</span></td><td>Connected lists provide their own pagination controls.</td></tr>
+            <tr><td><code>aiux-playbook</code></td><td>Self-contained renderer for ServiceNow Playbooks.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-record-activity-layout</code></td><td>Record package component for composing record activity layouts.</td><td><span class="status status-unused">No</span></td><td class="muted">Record forms are used; this activity layout is not.</td></tr>
+            <tr><td><code>aiux-record-activity-stream</code></td><td>Record package component for displaying record activity streams.</td><td><span class="status status-unused">No</span></td><td class="muted">Record forms are used; this activity stream is not.</td></tr>
+            <tr><td><code>aiux-record-core-attachment</code></td><td>Lists, uploads, previews, and edits record attachments.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-record-form</code></td><td>Record package form component for viewing and editing ServiceNow records.</td><td><span class="status status-used">Yes</span></td><td>Device, session, reading, action, alert, and AI configuration record pages.</td></tr>
+            <tr><td><code>aiux-score</code></td><td>Single-metric score card with optional target and change indicator.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-stepper</code></td><td>Vertical progress display for an AI agent workflow.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-tab-group</code></td><td>Accessible tab navigation with icons and DaisyUI styling.</td><td><span class="status status-used">Yes</span></td><td>Switches the control-room view between temperature history and activity.</td></tr>
+            <tr><td><code>aiux-toast-notification</code></td><td>Temporary typed notifications with placement and auto-dismiss options.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used directly.</td></tr>
+            <tr><td><code>aiux-visualizations-arc</code></td><td>Arc gauge for a value, range, and optional rule-based color zones.</td><td><span class="status status-used">Yes</span></td><td>Live chamber and meat temperature gauges on the control room.</td></tr>
+            <tr><td><code>aiux-visualizations-axis</code></td><td>Cartesian charts for line, bar, area, and scatter data.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-visualizations-bullet</code></td><td>Compares a metric against a target or range.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-visualizations-composition</code></td><td>Pie, donut, and semi-donut charts for proportional values.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-visualizations-matrix</code></td><td>Heatmap for comparing categorical dimensions and values.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-visualizations-score</code></td><td>Data-driven score display with target comparison and change indicator.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-visualizations-spider</code></td><td>Radar chart for comparing series across categorical axes.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-visual-board</code></td><td>Kanban board renderer with drag-and-drop support.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>page-alert-host</code></td><td>Page-level host that orchestrates a stack of dismissible alerts.</td><td><span class="status status-unused">No</span></td><td>Alerts are currently shown with inline <code>aiux-alert-message</code> elements.</td></tr>
+            <tr><td><code>sn-aiux-chat-wrapper</code></td><td>Wraps the ServiceNow engagement experience for AI chat.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-sn-feedback</code></td><td>Thumbs-up/down feedback with an optional detailed feedback form.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-sn-honeycomb</code></td><td>Honeycomb tilemap visualization.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-sn-popover</code></td><td>Floating panel anchored to a trigger element.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used directly.</td></tr>
+            <tr><td><code>aiux-accordion-group</code></td><td>Expandable accordion sections with single or multiple open items.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-alert-message</code></td><td>Typed notification for info, success, warning, error, or severity states.</td><td><span class="status status-used">Yes</span></td><td>Configuration guidance, dashboard warnings, and device/control status messages.</td></tr>
+            <tr><td><code>aiux-carousel-slider</code></td><td>Carousel with autoplay and keyboard navigation.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-dialog</code></td><td>Modal and modeless dialog component.</td><td><span class="status status-used">Yes</span></td><td>AI cooking plan and confirmation/progress dialogs on the control room.</td></tr>
+            <tr><td><code>aiux-node-map</code></td><td>Graph visualization for nodes and edges.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-toolbar</code></td><td>Accessible, server-rendering-compatible toolbar.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-appointment-calendar</code></td><td>Schedule, reschedule, and propose appointment slots.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-audio-player</code></td><td>Audio controls for playback, seeking, volume, and speed.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-checklist</code></td><td>Sorted, checkable item list with optional editing and links.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-checklist-item</code></td><td>Individual checkable list item with optional editing and prefix.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-contact-card</code></td><td>Contact identity card with avatar, titles, badges, and contact fields.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-list-selector</code></td><td>Adds, removes, and reorders items between available and selected lists.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-schedule-recurrence</code></td><td>Creates and edits recurring event schedules.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+            <tr><td><code>aiux-timer</code></td><td>Live timer component for elapsed or remaining time.</td><td><span class="status status-unused">No</span></td><td class="muted">Not currently used.</td></tr>
+
+            <tr><td><code>aiux-record-provider</code></td><td>Record-package provider for record data, APIs, and descendant context.</td><td><span class="status status-additional">Yes, additional</span></td><td>Wraps record forms and supplies their data and record context; not a separate row in the component index.</td></tr>
+            <tr><td><code>aiux-record-actions</code></td><td>Record-package actions for saving or updating the current record.</td><td><span class="status status-additional">Yes, additional</span></td><td>Provides insert/update actions alongside record forms; not a separate row in the component index.</td></tr>
+            <tr><td><code>aiux-nav-layout</code></td><td>Application navigation shell with sidebar and page chrome.</td><td><span class="status status-additional">Yes, additional</span></td><td>Configured as the application layout in <code>application.js</code>; not a separate row in the component index.</td></tr>
+            <tr id="empty-row" hidden><td colspan="4">No elements match this filter.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <footer>Catalog entries are based on the repository's component-discovery index. “Additional” identifies app-used elements outside that index.</footer>
+
+    <script>
+      const filter = document.querySelector('#filter');
+      const rows = [...document.querySelectorAll('#inventory tr:not(#empty-row)')];
+      const resultCount = document.querySelector('#result-count');
+      const emptyRow = document.querySelector('#empty-row');
+
+      filter.addEventListener('input', () => {
+        const query = filter.value.trim().toLocaleLowerCase();
+        let visible = 0;
+
+        for (const row of rows) {
+          const matches = row.textContent.toLocaleLowerCase().includes(query);
+          row.hidden = !matches;
+          visible += Number(matches);
+        }
+
+        emptyRow.hidden = visible !== 0;
+        resultCount.textContent = `${visible} of ${rows.length} elements`;
+      });
+    </script>
+  </body>
+</html>

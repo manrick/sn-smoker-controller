@@ -1,0 +1,11 @@
+{
+  "name": "SmokerController",
+  "basename": "smokercontroller",
+  "landing": "/smokercontrolroom",
+  "development": {
+    "token": ""
+  },
+  "build": {
+    "exclude": ["**/*.test.js", "**/test/**"]
+  }
+}

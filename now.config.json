@@ -1,0 +1,15 @@
+{
+  "scope": "x_tsigh_smkrctrl",
+  "scopeId": "5af6a15d9c02476aaf43057e85994c60",
+  "name": "SmokerController",
+  "metadataDir": "src/plugin-xmls",
+  "appOutputDir": "dist-metadata/app",
+  "packageSourceCodeOnInstance": true,
+  "staticContent": {
+    "assets": {
+      "./public/**": {
+        "publicPath": "[$config.aiux.basename]/public"
+      }
+    }
+  }
+}
